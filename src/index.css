@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* App-wide tweaks */
+html, body, #root { height: 100%; }
+body { 
+  @apply bg-gray-50 text-gray-900;
+  @apply dark:bg-gray-900 dark:text-gray-100;
+}
