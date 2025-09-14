@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, Eye, UserCheck, UserX, ChevronLeft, ChevronRight, Users, Building2, User } from 'lucide-react'
+import { Search, Filter, Eye, UserCheck, UserX, ChevronLeft, ChevronRight, Users, Building2, User, Trash2 } from 'lucide-react'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Badge from '../components/ui/Badge.jsx'
-import { getAllUsers, updateUserStatus } from '../services/api.js'
+import { getAllUsers, updateUserStatus, deleteUser } from '../services/api.js'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
@@ -16,6 +16,8 @@ export default function AdminUsers() {
   const [pagination, setPagination] = useState({})
   const [selectedUser, setSelectedUser] = useState(null)
   const [showUserModal, setShowUserModal] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -69,6 +71,25 @@ export default function AdminUsers() {
     } catch (err) {
       console.error('Error updating user status:', err)
       setError('Failed to update user status')
+    }
+  }
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      setDeleting(true)
+      await deleteUser(userId)
+      
+      // Remove user from local state
+      setUsers(users.filter(user => user._id !== userId))
+      setDeleteConfirm(null)
+      
+      // Show success message
+      setError('')
+    } catch (err) {
+      console.error('Error deleting user:', err)
+      setError(err.message || 'Failed to delete user')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -283,6 +304,15 @@ export default function AdminUsers() {
                                 </>
                               )}
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setDeleteConfirm(user)}
+                              className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -457,6 +487,48 @@ export default function AdminUsers() {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Delete User</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">This action cannot be undone</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 dark:text-gray-300">
+                  Are you sure you want to delete <strong>{deleteConfirm.name}</strong>? 
+                  This will permanently remove their account and all associated data.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => handleDeleteUser(deleteConfirm._id)}
+                  disabled={deleting}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {deleting ? 'Deleting...' : 'Delete User'}
+                </Button>
               </div>
             </div>
           </div>

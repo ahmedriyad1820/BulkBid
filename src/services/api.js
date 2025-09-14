@@ -161,6 +161,28 @@ class ApiService {
     });
   }
 
+  async deleteUser(userId) {
+    const token = localStorage.getItem('adminToken');
+    return this.request(`/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    });
+  }
+
+  async getAuctionStats() {
+    const token = localStorage.getItem('adminToken');
+    return this.request('/admin/stats/auctions', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    });
+  }
+
   async getProfile() {
     return this.request('/auth/profile');
   }
@@ -243,6 +265,8 @@ export const updateAdminProfile = (profileData) => apiService.updateAdminProfile
 export const getAllUsers = (params) => apiService.getAllUsers(params);
 export const getUserProfile = (userId) => apiService.getUserProfile(userId);
 export const updateUserStatus = (userId, isActive) => apiService.updateUserStatus(userId, isActive);
+export const deleteUser = (userId) => apiService.deleteUser(userId);
+export const getAuctionStats = () => apiService.getAuctionStats();
 export const healthCheck = () => apiService.healthCheck();
 
 export default apiService;

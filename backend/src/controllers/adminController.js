@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin.js';
 import User from '../models/User.js';
+import Auction from '../models/Auction.js';
 
 // Create default admin if not exists
 export const createDefaultAdmin = async () => {
@@ -291,6 +292,98 @@ export const updateUserStatus = async (req, res) => {
 
   } catch (error) {
     console.error('Update user status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Delete user (admin only)
+export const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prevent admin from deleting themselves
+    const adminId = req.adminId;
+    if (user._id.toString() === adminId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete your own admin account'
+      });
+    }
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Get auction statistics (admin only)
+export const getAuctionStats = async (req, res) => {
+  try {
+    const now = new Date();
+    
+    // Get total auctions
+    const totalAuctions = await Auction.countDocuments();
+    
+    // Get running auctions (active status and endTime > now)
+    const runningAuctions = await Auction.countDocuments({
+      status: 'active',
+      endTime: { $gt: now }
+    });
+    
+    // Get completed auctions (ended status or endTime <= now)
+    const completedAuctions = await Auction.countDocuments({
+      $or: [
+        { status: 'ended' },
+        { endTime: { $lte: now } }
+      ]
+    });
+    
+    // Get draft auctions
+    const draftAuctions = await Auction.countDocuments({
+      status: 'draft'
+    });
+    
+    // Get cancelled auctions
+    const cancelledAuctions = await Auction.countDocuments({
+      status: 'cancelled'
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        total: totalAuctions,
+        running: runningAuctions,
+        completed: completedAuctions,
+        draft: draftAuctions,
+        cancelled: cancelledAuctions
+      }
+    });
+
+  } catch (error) {
+    console.error('Get auction stats error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'

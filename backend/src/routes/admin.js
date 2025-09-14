@@ -1,5 +1,5 @@
 import express from 'express';
-import { adminLogin, getAdminProfile, updateAdminProfile, getAllUsers, getUserProfile, updateUserStatus } from '../controllers/adminController.js';
+import { adminLogin, getAdminProfile, updateAdminProfile, getAllUsers, getUserProfile, updateUserStatus, deleteUser, getAuctionStats } from '../controllers/adminController.js';
 import { adminAuth } from '../middleware/adminAuth.js';
 
 const router = express.Router();
@@ -15,5 +15,9 @@ router.put('/profile', adminAuth, updateAdminProfile);
 router.get('/users', adminAuth, getAllUsers);
 router.get('/users/:userId', adminAuth, getUserProfile);
 router.put('/users/:userId/status', adminAuth, updateUserStatus);
+router.delete('/users/:userId', adminAuth, deleteUser);
+
+// Statistics routes
+router.get('/stats/auctions', adminAuth, getAuctionStats);
 
 export default router;

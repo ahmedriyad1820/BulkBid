@@ -180,6 +180,11 @@ export const placeBid = async (req, res) => {
       return res.status(404).json({ message: 'Auction not found' });
     }
 
+    // Check if user is a buyer
+    if (req.user.role !== 'buyer') {
+      return res.status(403).json({ message: 'Only buyers can place bids' });
+    }
+
     if (auction.status !== 'active') {
       return res.status(400).json({ message: 'Auction is not active' });
     }

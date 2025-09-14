@@ -40,7 +40,7 @@ export default function Header({ user, setUser, isAdmin, adminEmail, adminData, 
             <>
               <NavLink to="/browse">Browse</NavLink>
               {user?.role === 'seller' && <NavLink to="/sell">Sell</NavLink>}
-              {user && <NavLink to="/dashboard">Dashboard</NavLink>}
+              {user && !isAdmin && <NavLink to="/dashboard">Dashboard</NavLink>}
             </>
           )}
           {isAdmin && <NavLink to="/admin">Admin</NavLink>}
@@ -67,7 +67,7 @@ export default function Header({ user, setUser, isAdmin, adminEmail, adminData, 
                     <CircleUser className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   )}
                 </div>
-                <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">Admin</span>
+                <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">{adminData?.name || 'Admin'}</span>
               </Link>
               <Button variant="ghost" icon={LogOut} onClick={handleAdminLogout}>Logout</Button>
             </div>

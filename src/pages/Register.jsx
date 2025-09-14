@@ -116,7 +116,7 @@ export default function Register({ setUser }) {
       localStorage.removeItem('isAdmin')
       localStorage.removeItem('adminEmail')
       
-      nav('/dashboard')
+      nav('/')
     } catch (err) {
       setError(err.message || 'Registration failed')
     } finally {

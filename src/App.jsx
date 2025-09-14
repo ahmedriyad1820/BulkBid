@@ -150,7 +150,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/browse" element={<Browse />} />
-            <Route path="/auction/:id" element={<AuctionDetail />} />
+            <Route path="/auction/:id" element={<AuctionDetail user={user} />} />
             <Route path="/sell" element={
               (user?.role === 'seller' || isAdmin) ? 
                 <SellCreate /> : 
