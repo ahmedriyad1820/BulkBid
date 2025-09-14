@@ -4,6 +4,7 @@ import { Hammer, Search, Plus, CircleUser, LogIn, LogOut } from 'lucide-react'
 import Button from './ui/Button.jsx'
 import Badge from './ui/Badge.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
+import api from '../services/api.js'
 
 const NavLink = ({ to, children }) => (
   <Link to={to} className="rounded-xl px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
@@ -12,6 +13,11 @@ const NavLink = ({ to, children }) => (
 )
 
 export default function Header({ user, setUser }) {
+  const handleLogout = () => {
+    api.logout()
+    setUser(null)
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-900/80 dark:supports-[backdrop-filter]:bg-gray-900/60 dark:border-gray-700">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
@@ -35,7 +41,7 @@ export default function Header({ user, setUser }) {
           {user ? (
             <div className="flex items-center gap-2">
               <Badge><CircleUser className="mr-1 inline" size={14}/> {user.name}</Badge>
-              <Button variant="ghost" icon={LogOut} onClick={() => setUser(null)}>Logout</Button>
+              <Button variant="ghost" icon={LogOut} onClick={handleLogout}>Logout</Button>
             </div>
           ) : (
             <>

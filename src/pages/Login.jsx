@@ -3,16 +3,29 @@ import Card from '../components/ui/Card.jsx'
 import Input from '../components/Input.jsx'
 import Button from '../components/ui/Button.jsx'
 import { useNavigate } from 'react-router-dom'
+import api from '../services/api.js'
 
 export default function Login({ setUser }) {
   const nav = useNavigate()
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
-  const submit = (e) => {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  
+  const submit = async (e) => {
     e.preventDefault()
-    // TODO: POST /auth/login
-    setUser({ name: email.split('@')[0] || 'User' })
-    nav('/')
+    setLoading(true)
+    setError('')
+    
+    try {
+      const response = await api.login({ email, password: pass })
+      setUser(response.user)
+      nav('/')
+    } catch (err) {
+      setError(err.message || 'Login failed')
+    } finally {
+      setLoading(false)
+    }
   }
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid min-h-[60vh] place-items-center py-12">
@@ -20,9 +33,16 @@ export default function Login({ setUser }) {
         <h1 className="mb-1 text-2xl font-semibold dark:text-white">Welcome back</h1>
         <p className="mb-6 text-sm text-gray-600 dark:text-gray-300">Use your business email. You can enable 2FA later in settings.</p>
         <form onSubmit={submit} className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
+              {error}
+            </div>
+          )}
           <Input label="Email" value={email} onChange={setEmail} />
           <Input label="Password" type="password" value={pass} onChange={setPass} />
-          <Button className="w-full" type="submit">Login</Button>
+          <Button className="w-full" type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </Button>
         </form>
       </Card>
     </div>
