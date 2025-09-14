@@ -70,7 +70,10 @@ export default function Uploader({ onImagesChange, maxImages = 5 }) {
     }
   }
 
-  const openFileDialog = () => {
+  const openFileDialog = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('Opening file dialog...')
     fileInputRef.current?.click()
   }
 
@@ -81,6 +84,7 @@ export default function Uploader({ onImagesChange, maxImages = 5 }) {
       </div>
       <div className="flex items-center gap-2">
         <Button 
+          type="button"
           variant="outline" 
           icon={isProcessing ? Upload : ImagePlus} 
           onClick={openFileDialog}

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Hammer, Search, Plus, CircleUser, LogIn, LogOut } from 'lucide-react'
+import { Hammer, Search, Plus, CircleUser, LogIn, LogOut, User } from 'lucide-react'
 import Button from './ui/Button.jsx'
 import Badge from './ui/Badge.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
@@ -32,17 +32,23 @@ export default function Header({ user, setUser, isAdmin, adminEmail, updateAdmin
         </Link>
 
         <div className="hidden items-center gap-2 md:flex">
-          <NavLink to="/browse">Browse</NavLink>
-          <NavLink to="/sell">Sell</NavLink>
-          <NavLink to="/dashboard">Dashboard</NavLink>
+          {(user || isAdmin) && (
+            <>
+              <NavLink to="/browse">Browse</NavLink>
+              {(user?.role === 'seller' || isAdmin) && <NavLink to="/sell">Sell</NavLink>}
+              <NavLink to="/dashboard">Dashboard</NavLink>
+            </>
+          )}
           {isAdmin && <NavLink to="/admin">Admin</NavLink>}
         </div>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link to="/browse" className="hidden md:block">
-            <Button variant="outline" icon={Search}>Search</Button>
-          </Link>
+          {(user || isAdmin) && (
+            <Link to="/browse" className="hidden md:block">
+              <Button variant="outline" icon={Search}>Search</Button>
+            </Link>
+          )}
           {isAdmin ? (
             <div className="flex items-center gap-2">
               <Badge className="bg-purple-600 text-white"><CircleUser className="mr-1 inline" size={14}/> Admin: {adminEmail}</Badge>
@@ -50,7 +56,20 @@ export default function Header({ user, setUser, isAdmin, adminEmail, updateAdmin
             </div>
           ) : user ? (
             <div className="flex items-center gap-2">
-              <Badge><CircleUser className="mr-1 inline" size={14}/> {user.name}</Badge>
+              <Link to="/profile" className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                  {user.profile?.avatar ? (
+                    <img 
+                      src={user.profile.avatar} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+                <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+              </Link>
               <Button variant="ghost" icon={LogOut} onClick={handleLogout}>Logout</Button>
             </div>
           ) : (

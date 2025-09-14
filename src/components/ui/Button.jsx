@@ -9,7 +9,11 @@ export default function Button({ children, icon: Icon, className = '', variant =
     'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
 
   return (
-    <button className={`${base} ${styles} ${className}`} {...props}>
+    <button 
+      type="button"
+      className={`${base} ${styles} ${className}`} 
+      {...props}
+    >
       {Icon && <Icon size={16} />}
       {children}
     </button>

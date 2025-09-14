@@ -37,6 +37,14 @@ export default function Login({ setUser, updateAdminState }) {
       // Regular user login
       const response = await login({ email, password: pass })
       setUser(response.user)
+      
+      // Clear admin state when regular user logs in
+      localStorage.removeItem('isAdmin')
+      localStorage.removeItem('adminEmail')
+      if (updateAdminState) {
+        updateAdminState(false, '')
+      }
+      
       nav('/')
     } catch (err) {
       setError(err.message || 'Login failed')

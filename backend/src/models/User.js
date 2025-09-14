@@ -22,8 +22,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    enum: ['buyer', 'seller', 'admin'],
+    default: 'buyer'
   },
   isVerified: {
     type: Boolean,
@@ -32,7 +32,19 @@ const userSchema = new mongoose.Schema({
   profile: {
     avatar: String,
     phone: String,
+    nidNumber: String,
+    nidDocument: String, // Base64 or file path
     address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String,
+      country: String
+    },
+    // Seller specific fields
+    companyName: String,
+    tradeLicense: String,
+    companyAddress: {
       street: String,
       city: String,
       state: String,

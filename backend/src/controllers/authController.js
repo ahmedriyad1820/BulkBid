@@ -19,7 +19,7 @@ export const register = async (req, res) => {
       });
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password, role, profile } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -27,11 +27,18 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
+    // Validate role
+    if (!['buyer', 'seller'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be buyer or seller' });
+    }
+
     // Create new user
     const user = new User({
       name,
       email,
-      password
+      password,
+      role: role || 'buyer',
+      profile: profile || {}
     });
 
     await user.save();
@@ -46,7 +53,8 @@ export const register = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        profile: user.profile
       }
     });
   } catch (error) {
@@ -90,7 +98,8 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        profile: user.profile
       }
     });
   } catch (error) {
