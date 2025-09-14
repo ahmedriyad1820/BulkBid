@@ -35,8 +35,8 @@ export default function Header({ user, setUser, isAdmin, adminEmail, adminData, 
           {(user || isAdmin) && (
             <>
               <NavLink to="/browse">Browse</NavLink>
-              {(user?.role === 'seller' || isAdmin) && <NavLink to="/sell">Sell</NavLink>}
-              <NavLink to="/dashboard">Dashboard</NavLink>
+              {user?.role === 'seller' && <NavLink to="/sell">Sell</NavLink>}
+              {user && <NavLink to="/dashboard">Dashboard</NavLink>}
             </>
           )}
           {isAdmin && <NavLink to="/admin">Admin</NavLink>}

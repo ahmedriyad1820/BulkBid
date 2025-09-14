@@ -129,6 +129,38 @@ class ApiService {
     });
   }
 
+  // Admin user management methods
+  async getAllUsers(params = {}) {
+    const token = localStorage.getItem('adminToken');
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/admin/users?${queryString}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    });
+  }
+
+  async getUserProfile(userId) {
+    const token = localStorage.getItem('adminToken');
+    return this.request(`/admin/users/${userId}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    });
+  }
+
+  async updateUserStatus(userId, isActive) {
+    const token = localStorage.getItem('adminToken');
+    return this.request(`/admin/users/${userId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: JSON.stringify({ isActive })
+    });
+  }
+
   async getProfile() {
     return this.request('/auth/profile');
   }
@@ -208,6 +240,9 @@ export const adminLogin = (credentials) => apiService.adminLogin(credentials);
 export const adminLogout = () => apiService.adminLogout();
 export const getAdminProfile = () => apiService.getAdminProfile();
 export const updateAdminProfile = (profileData) => apiService.updateAdminProfile(profileData);
+export const getAllUsers = (params) => apiService.getAllUsers(params);
+export const getUserProfile = (userId) => apiService.getUserProfile(userId);
+export const updateUserStatus = (userId, isActive) => apiService.updateUserStatus(userId, isActive);
 export const healthCheck = () => apiService.healthCheck();
 
 export default apiService;

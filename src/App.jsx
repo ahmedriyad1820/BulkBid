@@ -9,6 +9,7 @@ import AuctionDetail from './pages/AuctionDetail.jsx'
 import SellCreate from './pages/SellCreate.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
+import AdminUsers from './pages/AdminUsers.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Profile from './pages/Profile.jsx'
@@ -165,6 +166,7 @@ export default function App() {
             } />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin updateAdminState={updateAdminState} />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/login" element={<Login setUser={setUser} updateAdminState={updateAdminState} />} />
             <Route path="/register" element={<Register setUser={setUser} />} />
             <Route path="/profile" element={<Profile setUser={setUser} />} />

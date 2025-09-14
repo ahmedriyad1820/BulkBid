@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import Card from '../components/ui/Card.jsx'
 import { AUCTIONS } from '../data/mockData.js'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { Users, Eye } from 'lucide-react'
 
 export default function Admin({ updateAdminState }) {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -50,7 +51,7 @@ export default function Admin({ updateAdminState }) {
         <h1 className="text-2xl font-semibold">Admin Panel</h1>
         <p className="text-gray-600 dark:text-gray-300">Moderate auctions, verify sellers, and review disputes.</p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-lg font-semibold">Seller Verifications</h3>
@@ -90,6 +91,42 @@ export default function Admin({ updateAdminState }) {
               </li>
             ))}
           </ul>
+        </Card>
+        
+        {/* User Management Card */}
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">User Management</h3>
+            <Link 
+              to="/admin/users" 
+              className="rounded-xl px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300 flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              Manage Users
+            </Link>
+          </div>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-xl border p-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <div className="font-medium">All Users</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Buyers & Sellers</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-semibold text-green-600 dark:text-green-400">Active</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Manage accounts</div>
+              </div>
+            </div>
+            <div className="text-center py-4">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                View and manage all user accounts, activate/deactivate users, and view detailed profiles.
+              </p>
+            </div>
+          </div>
         </Card>
       </div>
     </div>
