@@ -12,12 +12,14 @@ import Admin from './pages/Admin.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Profile from './pages/Profile.jsx'
+import AdminProfile from './pages/AdminProfile.jsx'
 import StaticPage from './pages/StaticPage.jsx'
 
 export default function App() {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminEmail, setAdminEmail] = useState('')
+  const [adminData, setAdminData] = useState(null)
 
   // Check for user login state on app load
   useEffect(() => {
@@ -49,16 +51,49 @@ export default function App() {
       }
     }
 
-    const checkAdminState = () => {
+    const checkAdminState = async () => {
       const adminFlag = localStorage.getItem('isAdmin')
       const email = localStorage.getItem('adminEmail')
+      const adminToken = localStorage.getItem('adminToken')
       
-      if (adminFlag === 'true' && email) {
-        setIsAdmin(true)
-        setAdminEmail(email)
+      if (adminFlag === 'true' && email && adminToken) {
+        try {
+          // Verify admin token
+          const response = await fetch('http://localhost:5000/api/admin/profile', {
+            headers: {
+              'Authorization': `Bearer ${adminToken}`
+            }
+          })
+          
+          if (response.ok) {
+            const adminResponse = await response.json()
+            const adminData = adminResponse.admin
+            setIsAdmin(true)
+            setAdminEmail(email)
+            setAdminData(adminData)
+            setUser(null) // Clear user state when admin is logged in
+          } else {
+            // Admin token is invalid, clear it
+            localStorage.removeItem('adminToken')
+            localStorage.removeItem('isAdmin')
+            localStorage.removeItem('adminEmail')
+            setIsAdmin(false)
+            setAdminEmail('')
+            setAdminData(null)
+          }
+        } catch (error) {
+          console.error('Error verifying admin token:', error)
+          localStorage.removeItem('adminToken')
+          localStorage.removeItem('isAdmin')
+          localStorage.removeItem('adminEmail')
+          setIsAdmin(false)
+          setAdminEmail('')
+          setAdminData(null)
+        }
       } else {
         setIsAdmin(false)
         setAdminEmail('')
+        setAdminData(null)
       }
     }
 
@@ -107,6 +142,7 @@ export default function App() {
           setUser={setUser} 
           isAdmin={isAdmin} 
           adminEmail={adminEmail}
+          adminData={adminData}
           updateAdminState={updateAdminState}
         />
         <main>
@@ -132,6 +168,7 @@ export default function App() {
             <Route path="/login" element={<Login setUser={setUser} updateAdminState={updateAdminState} />} />
             <Route path="/register" element={<Register setUser={setUser} />} />
             <Route path="/profile" element={<Profile setUser={setUser} />} />
+            <Route path="/admin-profile" element={<AdminProfile setUser={setUser} setAdminData={setAdminData} />} />
             <Route path="/terms" element={<StaticPage title="Terms & Conditions">Coming soon.</StaticPage>} />
             <Route path="/privacy" element={<StaticPage title="Privacy">Coming soon.</StaticPage>} />
             <Route path="/help" element={<StaticPage title="Help Center">Email support@bulkbid.example</StaticPage>} />

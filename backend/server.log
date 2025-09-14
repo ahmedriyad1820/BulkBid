@@ -1,0 +1,5 @@
+🚀 Server running on port 5000
+📊 Health check: http://localhost:5000/api/health
+MongoDB Connected: ac-vy6umot-shard-00-01.3dmd51i.mongodb.net
+Database: bulkbid
+ℹ️  Admin already exists

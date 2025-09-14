@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const adminSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -25,6 +30,37 @@ const adminSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: null
+  },
+  profile: {
+    phone: {
+      type: String,
+      trim: true
+    },
+    address: {
+      street: {
+        type: String,
+        trim: true
+      },
+      city: {
+        type: String,
+        trim: true
+      },
+      state: {
+        type: String,
+        trim: true
+      },
+      zipCode: {
+        type: String,
+        trim: true
+      },
+      country: {
+        type: String,
+        trim: true
+      }
+    },
+    avatar: {
+      type: String
+    }
   }
 }, {
   timestamps: true

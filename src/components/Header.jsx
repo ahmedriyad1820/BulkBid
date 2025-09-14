@@ -12,7 +12,7 @@ const NavLink = ({ to, children }) => (
   </Link>
 )
 
-export default function Header({ user, setUser, isAdmin, adminEmail, updateAdminState }) {
+export default function Header({ user, setUser, isAdmin, adminEmail, adminData, updateAdminState }) {
   const handleLogout = () => {
     api.logout()
     setUser(null)
@@ -51,7 +51,20 @@ export default function Header({ user, setUser, isAdmin, adminEmail, updateAdmin
           )}
           {isAdmin ? (
             <div className="flex items-center gap-2">
-              <Badge className="bg-purple-600 text-white"><CircleUser className="mr-1 inline" size={14}/> Admin: {adminEmail}</Badge>
+              <Link to="/admin-profile" className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center overflow-hidden">
+                  {adminData?.profile?.avatar ? (
+                    <img 
+                      src={adminData.profile.avatar} 
+                      alt="Admin Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <CircleUser className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  )}
+                </div>
+                <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">Admin</span>
+              </Link>
               <Button variant="ghost" icon={LogOut} onClick={handleAdminLogout}>Logout</Button>
             </div>
           ) : user ? (

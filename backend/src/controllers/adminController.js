@@ -11,6 +11,7 @@ export const createDefaultAdmin = async () => {
       const hashedPassword = await bcrypt.hash('Admin@123', 12);
       
       const admin = new Admin({
+        name: 'Admin User',
         email: 'dracula@gmail.com',
         password: hashedPassword,
         role: 'admin'
@@ -19,7 +20,14 @@ export const createDefaultAdmin = async () => {
       await admin.save();
       console.log('✅ Default admin created successfully');
     } else {
-      console.log('ℹ️  Admin already exists');
+      // Update existing admin to include name field if missing
+      if (!existingAdmin.name) {
+        existingAdmin.name = 'Admin User';
+        await existingAdmin.save();
+        console.log('✅ Updated existing admin with name field');
+      } else {
+        console.log('ℹ️  Admin already exists');
+      }
     }
   } catch (error) {
     console.error('Error creating default admin:', error);
@@ -89,8 +97,10 @@ export const adminLogin = async (req, res) => {
       token,
       admin: {
         id: admin._id,
+        name: admin.name,
         email: admin.email,
         role: admin.role,
+        profile: admin.profile,
         lastLogin: admin.lastLogin
       }
     });
@@ -123,6 +133,49 @@ export const getAdminProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Get admin profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Update admin profile
+export const updateAdminProfile = async (req, res) => {
+  try {
+    const { name, email, phone, address, avatar } = req.body;
+    
+    const updateData = {
+      name,
+      email,
+      profile: {
+        phone,
+        address,
+        avatar
+      }
+    };
+
+    const admin = await Admin.findByIdAndUpdate(
+      req.adminId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin profile updated successfully',
+      admin
+    });
+
+  } catch (error) {
+    console.error('Update admin profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'

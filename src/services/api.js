@@ -117,6 +117,18 @@ class ApiService {
     });
   }
 
+  async updateAdminProfile(profileData) {
+    const token = localStorage.getItem('adminToken');
+    return this.request('/admin/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: JSON.stringify(profileData)
+    });
+  }
+
   async getProfile() {
     return this.request('/auth/profile');
   }
@@ -195,6 +207,7 @@ export const updateProfile = (profileData) => apiService.updateProfile(profileDa
 export const adminLogin = (credentials) => apiService.adminLogin(credentials);
 export const adminLogout = () => apiService.adminLogout();
 export const getAdminProfile = () => apiService.getAdminProfile();
+export const updateAdminProfile = (profileData) => apiService.updateAdminProfile(profileData);
 export const healthCheck = () => apiService.healthCheck();
 
 export default apiService;
