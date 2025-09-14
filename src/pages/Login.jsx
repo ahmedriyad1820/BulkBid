@@ -3,9 +3,9 @@ import Card from '../components/ui/Card.jsx'
 import Input from '../components/Input.jsx'
 import Button from '../components/ui/Button.jsx'
 import { useNavigate } from 'react-router-dom'
-import api from '../services/api.js'
+import { login, adminLogin } from '../services/api.js'
 
-export default function Login({ setUser }) {
+export default function Login({ setUser, updateAdminState }) {
   const nav = useNavigate()
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
@@ -18,7 +18,24 @@ export default function Login({ setUser }) {
     setError('')
     
     try {
-      const response = await api.login({ email, password: pass })
+      // Check if admin login (dracula@gmail.com)
+      if (email.toLowerCase() === 'dracula@gmail.com') {
+        const response = await adminLogin({ email, password: pass })
+        if (response.success) {
+          // Store admin info in localStorage
+          localStorage.setItem('isAdmin', 'true')
+          localStorage.setItem('adminEmail', response.admin.email)
+          // Update admin state in App component
+          if (updateAdminState) {
+            updateAdminState(true, response.admin.email)
+          }
+          nav('/admin')
+          return
+        }
+      }
+      
+      // Regular user login
+      const response = await login({ email, password: pass })
       setUser(response.user)
       nav('/')
     } catch (err) {

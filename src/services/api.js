@@ -78,6 +78,36 @@ class ApiService {
 
   async logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('adminToken');
+  }
+
+  // Admin authentication methods
+  async adminLogin(credentials) {
+    const response = await this.request('/admin/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials)
+    });
+    
+    // Store admin token in localStorage
+    if (response.token) {
+      localStorage.setItem('adminToken', response.token);
+    }
+    
+    return response;
+  }
+
+  async adminLogout() {
+    localStorage.removeItem('adminToken');
+  }
+
+  async getAdminProfile() {
+    const token = localStorage.getItem('adminToken');
+    return this.request('/admin/profile', {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    });
   }
 
   async getProfile() {
@@ -155,6 +185,9 @@ export const login = (credentials) => apiService.login(credentials);
 export const logout = () => apiService.logout();
 export const getProfile = () => apiService.getProfile();
 export const updateProfile = (profileData) => apiService.updateProfile(profileData);
+export const adminLogin = (credentials) => apiService.adminLogin(credentials);
+export const adminLogout = () => apiService.adminLogout();
+export const getAdminProfile = () => apiService.getAdminProfile();
 export const healthCheck = () => apiService.healthCheck();
 
 export default apiService;

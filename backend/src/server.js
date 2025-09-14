@@ -5,6 +5,8 @@ import connectDB from './config/database.js';
 import authRoutes from './routes/auth.js';
 import auctionRoutes from './routes/auctions.js';
 import userRoutes from './routes/users.js';
+import adminRoutes from './routes/admin.js';
+import { createDefaultAdmin } from './controllers/adminController.js';
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +29,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/auctions', auctionRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -51,8 +54,11 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  
+  // Create default admin after server starts
+  await createDefaultAdmin();
 });
 

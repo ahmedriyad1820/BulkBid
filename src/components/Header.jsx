@@ -12,10 +12,15 @@ const NavLink = ({ to, children }) => (
   </Link>
 )
 
-export default function Header({ user, setUser }) {
+export default function Header({ user, setUser, isAdmin, adminEmail, updateAdminState }) {
   const handleLogout = () => {
     api.logout()
     setUser(null)
+  }
+
+  const handleAdminLogout = () => {
+    api.logout()
+    updateAdminState(false, '')
   }
 
   return (
@@ -30,7 +35,7 @@ export default function Header({ user, setUser }) {
           <NavLink to="/browse">Browse</NavLink>
           <NavLink to="/sell">Sell</NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/admin">Admin</NavLink>
+          {isAdmin && <NavLink to="/admin">Admin</NavLink>}
         </div>
 
         <div className="flex items-center gap-2">
@@ -38,7 +43,12 @@ export default function Header({ user, setUser }) {
           <Link to="/browse" className="hidden md:block">
             <Button variant="outline" icon={Search}>Search</Button>
           </Link>
-          {user ? (
+          {isAdmin ? (
+            <div className="flex items-center gap-2">
+              <Badge className="bg-purple-600 text-white"><CircleUser className="mr-1 inline" size={14}/> Admin: {adminEmail}</Badge>
+              <Button variant="ghost" icon={LogOut} onClick={handleAdminLogout}>Logout</Button>
+            </div>
+          ) : user ? (
             <div className="flex items-center gap-2">
               <Badge><CircleUser className="mr-1 inline" size={14}/> {user.name}</Badge>
               <Button variant="ghost" icon={LogOut} onClick={handleLogout}>Logout</Button>
