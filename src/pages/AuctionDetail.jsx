@@ -41,7 +41,13 @@ export default function AuctionDetail() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card className="overflow-hidden">
-            <img src={a.image} alt={a.title} className="max-h-[420px] w-full object-cover" />
+            {a.images && a.images.length > 0 ? (
+              <img src={a.images[0]} alt={a.title} className="max-h-[420px] w-full object-cover" />
+            ) : (
+              <div className="max-h-[420px] w-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <span className="text-gray-500 dark:text-gray-400 text-lg">No Image Available</span>
+              </div>
+            )}
             <div className="mt-4 space-y-2 p-2 sm:p-4">
               <h1 className="text-2xl font-semibold">{a.title}</h1>
               <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">

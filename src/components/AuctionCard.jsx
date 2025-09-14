@@ -10,7 +10,13 @@ export default function AuctionCard({ a }) {
     <Card>
       <Link to={`/auction/${a.id}`} className="group block">
         <div className="relative overflow-hidden rounded-xl">
-          <img src={a.image} alt={a.title} className="h-44 w-full object-cover transition group-hover:scale-105" />
+          {a.images && a.images.length > 0 ? (
+            <img src={a.images[0]} alt={a.title} className="h-44 w-full object-cover transition group-hover:scale-105" />
+          ) : (
+            <div className="h-44 w-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+              <span className="text-gray-500 dark:text-gray-400 text-sm">No Image</span>
+            </div>
+          )}
           <div className="absolute right-2 top-2 flex gap-2">
             <Badge>{a.category}</Badge>
             <Badge className="bg-white dark:bg-gray-700 dark:text-gray-300">{a.location}</Badge>
