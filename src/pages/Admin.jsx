@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import Card from '../components/ui/Card.jsx'
-import { AUCTIONS } from '../data/mockData.js'
 import { useNavigate, Link } from 'react-router-dom'
 import { Users, Eye } from 'lucide-react'
 
@@ -57,40 +56,28 @@ export default function Admin({ updateAdminState }) {
             <h3 className="text-lg font-semibold">Seller Verifications</h3>
             <button className="rounded-xl px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">View all</button>
           </div>
-          <ul className="space-y-3 text-sm">
-            {['AgroTrade Ltd','Dhaka Surplus Co','Ecom Hub'].map((s,i)=>(
-              <li key={i} className="flex items-center justify-between rounded-xl border p-3">
-                <div>
-                  <div className="font-medium">{s}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Tax ID: {100000+i}</div>
-                </div>
-                <div className="flex gap-2">
-                  <button className="rounded-2xl border border-red-300 bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 dark:border-red-500 dark:bg-red-600 dark:hover:bg-red-700">Reject</button>
-                  <button className="rounded-2xl bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700">Approve</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="text-center py-8">
+            <div className="text-gray-400 dark:text-gray-500 mb-2">
+              <Users className="w-12 h-12 mx-auto" />
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">No pending verifications</p>
+            <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">All sellers are verified</p>
+          </div>
         </Card>
         <Card>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-lg font-semibold">Flagged Auctions</h3>
             <button className="rounded-xl px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">View all</button>
           </div>
-          <ul className="space-y-3 text-sm">
-            {AUCTIONS.slice(0,3).map(a => (
-              <li key={a.id} className="flex items-center justify-between rounded-xl border p-3">
-                <div>
-                  <div className="font-medium">{a.title}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Reason: misleading images</div>
-                </div>
-                <div className="flex gap-2">
-                  <button className="rounded-2xl border border-red-300 bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 dark:border-red-500 dark:bg-red-600 dark:hover:bg-red-700">Suspend</button>
-                  <button className="rounded-2xl bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700">Clear</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="text-center py-8">
+            <div className="text-gray-400 dark:text-gray-500 mb-2">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">No flagged auctions</p>
+            <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">All auctions are clean</p>
+          </div>
         </Card>
         
         {/* User Management Card */}

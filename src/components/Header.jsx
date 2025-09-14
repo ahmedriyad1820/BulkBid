@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Hammer, Search, Plus, CircleUser, LogIn, LogOut, User } from 'lucide-react'
 import Button from './ui/Button.jsx'
 import Badge from './ui/Badge.jsx'
@@ -13,14 +13,18 @@ const NavLink = ({ to, children }) => (
 )
 
 export default function Header({ user, setUser, isAdmin, adminEmail, adminData, updateAdminState }) {
+  const navigate = useNavigate()
+
   const handleLogout = () => {
     api.logout()
     setUser(null)
+    navigate('/')
   }
 
   const handleAdminLogout = () => {
     api.logout()
     updateAdminState(false, '')
+    navigate('/')
   }
 
   return (
