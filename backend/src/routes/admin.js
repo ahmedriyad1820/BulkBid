@@ -1,5 +1,5 @@
 import express from 'express';
-import { adminLogin, getAdminProfile, updateAdminProfile, getAllUsers, getUserProfile, updateUserStatus, deleteUser, getAuctionStats } from '../controllers/adminController.js';
+import { adminLogin, getAdminProfile, updateAdminProfile, getAllUsers, getUserProfile, updateUserStatus, deleteUser, getAuctionStats, approveSeller, rejectSeller } from '../controllers/adminController.js';
 import { adminAuth } from '../middleware/adminAuth.js';
 
 const router = express.Router();
@@ -16,6 +16,8 @@ router.get('/users', adminAuth, getAllUsers);
 router.get('/users/:userId', adminAuth, getUserProfile);
 router.put('/users/:userId/status', adminAuth, updateUserStatus);
 router.delete('/users/:userId', adminAuth, deleteUser);
+router.post('/users/:userId/approve-seller', adminAuth, approveSeller);
+router.post('/users/:userId/reject-seller', adminAuth, rejectSeller);
 
 // Statistics routes
 router.get('/stats/auctions', adminAuth, getAuctionStats);

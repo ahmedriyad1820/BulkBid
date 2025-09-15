@@ -27,9 +27,12 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Validate role
-    if (!['buyer', 'seller'].includes(role)) {
-      return res.status(400).json({ message: 'Invalid role. Must be buyer or seller' });
+    // Normalize role: sellers require admin approval
+    let normalizedRole = 'buyer';
+    let pendingSeller = false;
+    if (role === 'seller') {
+      normalizedRole = 'buyer';
+      pendingSeller = true;
     }
 
     // Create new user
@@ -37,8 +40,10 @@ export const register = async (req, res) => {
       name,
       email,
       password,
-      role: role || 'buyer',
-      profile: profile || {}
+      role: normalizedRole,
+      profile: profile || {},
+      pendingSeller,
+      sellerRequestAt: pendingSeller ? new Date() : undefined
     });
 
     await user.save();
@@ -54,7 +59,8 @@ export const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profile: user.profile
+        profile: user.profile,
+        pendingSeller: user.pendingSeller
       }
     });
   } catch (error) {

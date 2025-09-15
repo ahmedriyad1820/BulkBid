@@ -4,12 +4,14 @@ import PieChart from '../components/PieChart.jsx'
 import { useNavigate, Link } from 'react-router-dom'
 import { Users, Eye, BarChart3 } from 'lucide-react'
 import { getAuctionStats } from '../services/api.js'
+import api from '../services/api.js'
 
 export default function Admin({ updateAdminState }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [auctionStats, setAuctionStats] = useState(null)
   const [statsLoading, setStatsLoading] = useState(true)
+  const [pendingSellers, setPendingSellers] = useState(0)
   const nav = useNavigate()
 
   useEffect(() => {
@@ -49,6 +51,23 @@ export default function Admin({ updateAdminState }) {
     if (isAdmin) {
       fetchAuctionStats()
     }
+  }, [isAdmin])
+
+  // Fetch pending seller count
+  useEffect(() => {
+    const fetchPending = async () => {
+      try {
+        const res = await api.getAllUsers({ pendingSeller: true, limit: 1, page: 1 })
+        if (res && res.pagination) {
+          setPendingSellers(res.pagination.totalUsers || 0)
+        } else if (res && Array.isArray(res.users)) {
+          setPendingSellers(res.users.length)
+        }
+      } catch (e) {
+        console.error('Error fetching pending sellers', e)
+      }
+    }
+    if (isAdmin) fetchPending()
   }, [isAdmin])
 
 
@@ -129,15 +148,26 @@ export default function Admin({ updateAdminState }) {
         <Card>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-lg font-semibold">Seller Verifications</h3>
-            <button className="rounded-xl px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">View all</button>
+            <Link to="/admin/users" className="rounded-xl px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">View all</Link>
           </div>
-          <div className="text-center py-8">
-            <div className="text-gray-400 dark:text-gray-500 mb-2">
-              <Users className="w-12 h-12 mx-auto" />
+          {pendingSellers > 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-400 dark:text-gray-500 mb-2">
+                <Users className="w-12 h-12 mx-auto" />
+              </div>
+              <p className="text-gray-900 dark:text-white text-xl font-semibold">{pendingSellers}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">pending seller verification{pendingSellers>1?'s':''}</p>
+              <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">Go to Users → filter Pending</p>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">No pending verifications</p>
-            <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">All sellers are verified</p>
-          </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-gray-400 dark:text-gray-500 mb-2">
+                <Users className="w-12 h-12 mx-auto" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">No pending verifications</p>
+              <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">All sellers are verified</p>
+            </div>
+          )}
         </Card>
         <Card>
           <div className="mb-3 flex items-center justify-between">

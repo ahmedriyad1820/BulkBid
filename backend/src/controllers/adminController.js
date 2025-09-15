@@ -188,12 +188,15 @@ export const updateAdminProfile = async (req, res) => {
 // Get all users (admin only)
 export const getAllUsers = async (req, res) => {
   try {
-    const { role, page = 1, limit = 10, search } = req.query;
+    const { role, page = 1, limit = 10, search, pendingSeller } = req.query;
     
     // Build filter object
     const filter = {};
     if (role && role !== 'all') {
       filter.role = role;
+    }
+    if (typeof pendingSeller !== 'undefined') {
+      filter.pendingSeller = pendingSeller === 'true';
     }
     if (search) {
       filter.$or = [
@@ -336,6 +339,41 @@ export const deleteUser = async (req, res) => {
       success: false,
       message: 'Internal server error'
     });
+  }
+};
+
+// Approve seller request
+export const approveSeller = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    user.role = 'seller';
+    user.pendingSeller = false;
+    user.sellerApprovedAt = new Date();
+    user.sellerApprovedBy = req.adminId;
+    await user.save();
+    res.status(200).json({ success: true, message: 'Seller approved', user: user.toJSON() });
+  } catch (error) {
+    console.error('Approve seller error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Reject seller request
+export const rejectSeller = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { reason } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    user.pendingSeller = false;
+    user.sellerRejectionReason = reason || 'Rejected by admin';
+    await user.save();
+    res.status(200).json({ success: true, message: 'Seller request rejected', user: user.toJSON() });
+  } catch (error) {
+    console.error('Reject seller error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 

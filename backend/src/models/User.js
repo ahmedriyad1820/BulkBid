@@ -62,7 +62,13 @@ const userSchema = new mongoose.Schema({
       enum: ['light', 'dark'],
       default: 'light'
     }
-  }
+  },
+  // Seller approval workflow
+  pendingSeller: { type: Boolean, default: false },
+  sellerRequestAt: { type: Date },
+  sellerApprovedAt: { type: Date },
+  sellerApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+  sellerRejectionReason: { type: String }
 }, {
   timestamps: true
 });

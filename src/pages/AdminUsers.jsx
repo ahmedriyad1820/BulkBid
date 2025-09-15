@@ -5,6 +5,7 @@ import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { getAllUsers, updateUserStatus, deleteUser } from '../services/api.js'
+import api from '../services/api.js'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
@@ -12,6 +13,7 @@ export default function AdminUsers() {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [showPendingOnly, setShowPendingOnly] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState({})
   const [selectedUser, setSelectedUser] = useState(null)
@@ -21,7 +23,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers()
-  }, [currentPage, roleFilter, searchTerm])
+  }, [currentPage, roleFilter, searchTerm, showPendingOnly])
 
   const fetchUsers = async () => {
     try {
@@ -32,7 +34,8 @@ export default function AdminUsers() {
         page: currentPage,
         limit: 10,
         role: roleFilter,
-        search: searchTerm
+        search: searchTerm,
+        ...(showPendingOnly ? { pendingSeller: true } : {})
       }
       
       const response = await getAllUsers(params)
@@ -164,7 +167,7 @@ export default function AdminUsers() {
             </form>
 
             {/* Role Filter */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Button
                 variant={roleFilter === 'all' ? 'default' : 'outline'}
                 onClick={() => handleRoleFilter('all')}
@@ -189,6 +192,10 @@ export default function AdminUsers() {
                 <Building2 className="w-4 h-4" />
                 Sellers
               </Button>
+              <label className="ml-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <input type="checkbox" checked={showPendingOnly} onChange={(e)=>{setShowPendingOnly(e.target.checked); setCurrentPage(1)}} />
+                Pending seller requests
+              </label>
             </div>
           </div>
         </Card>
@@ -223,6 +230,7 @@ export default function AdminUsers() {
                     <tr className="border-b border-gray-200 dark:border-gray-700">
                       <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">User</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Role</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Seller Request</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Joined</th>
                       <th className="text-right py-3 px-4 font-medium text-gray-900 dark:text-white">Actions</th>
@@ -257,6 +265,9 @@ export default function AdminUsers() {
                             {getRoleIcon(user.role)}
                             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                           </Badge>
+                        </td>
+                        <td className="py-4 px-4 text-sm">
+                          {user.pendingSeller ? <span className="text-amber-600">Pending</span> : <span className="text-gray-500">—</span>}
                         </td>
                         <td className="py-4 px-4">
                           <Badge 
@@ -304,6 +315,23 @@ export default function AdminUsers() {
                                 </>
                               )}
                             </Button>
+                            {user.pendingSeller && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={async()=>{ await api.approveSeller(user._id); fetchUsers() }}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={async()=>{ const reason = prompt('Reason (optional)'); await api.rejectSeller(user._id, reason); fetchUsers() }}
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"

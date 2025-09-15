@@ -140,6 +140,28 @@ class ApiService {
     });
   }
 
+  async approveSeller(userId) {
+    const token = localStorage.getItem('adminToken');
+    return this.request(`/admin/users/${userId}/approve-seller`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` })
+      }
+    });
+  }
+
+  async rejectSeller(userId, reason) {
+    const token = localStorage.getItem('adminToken');
+    return this.request(`/admin/users/${userId}/reject-seller`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
+      body: JSON.stringify({ reason })
+    });
+  }
+
   async getUserProfile(userId) {
     const token = localStorage.getItem('adminToken');
     return this.request(`/admin/users/${userId}`, {
