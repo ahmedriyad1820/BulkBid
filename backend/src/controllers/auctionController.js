@@ -228,9 +228,21 @@ export const getUserAuctions = async (req, res) => {
 
     const auctions = await Auction.find(filter)
       .populate('winner', 'name email')
+      .populate('bids.bidder', 'name email profile')
       .sort({ createdAt: -1 });
 
-    res.json(auctions);
+    // Sort bids within each auction by amount (highest first)
+    const normalized = auctions.map(a => {
+      const auction = a.toObject();
+      if (Array.isArray(auction.bids)) {
+        auction.bids = auction.bids
+          .slice()
+          .sort((b1, b2) => (b2.amount || 0) - (b1.amount || 0));
+      }
+      return auction;
+    });
+
+    res.json(normalized);
   } catch (error) {
     console.error('Get user auctions error:', error);
     res.status(500).json({ message: 'Server error while fetching user auctions' });

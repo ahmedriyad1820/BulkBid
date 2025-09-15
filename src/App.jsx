@@ -7,6 +7,7 @@ import Home from './pages/Home.jsx'
 import Browse from './pages/Browse.jsx'
 import AuctionDetail from './pages/AuctionDetail.jsx'
 import SellCreate from './pages/SellCreate.jsx'
+import SellEdit from './pages/SellEdit.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
@@ -158,6 +159,19 @@ export default function App() {
                   <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Access Denied</h1>
                     <p className="text-gray-600 dark:text-gray-300 mb-6">Only sellers can access the Sell page.</p>
+                    <Link to="/browse" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                      Browse Auctions
+                    </Link>
+                  </div>
+                </div>
+            } />
+            <Route path="/sell/edit/:id" element={
+              (user?.role === 'seller' || isAdmin) ? 
+                <SellEdit /> : 
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Access Denied</h1>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">Only sellers can edit auctions.</p>
                     <Link to="/browse" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                       Browse Auctions
                     </Link>
