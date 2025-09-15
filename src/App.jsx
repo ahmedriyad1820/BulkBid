@@ -149,7 +149,7 @@ export default function App() {
         />
         <main>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home user={user} isAdmin={isAdmin} />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/auction/:id" element={<AuctionDetail user={user} />} />
             <Route path="/sell" element={

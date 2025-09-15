@@ -7,7 +7,7 @@ import Hero from './parts/Hero.jsx'
 import { Link } from 'react-router-dom'
 import { getAuctions } from '../services/api.js'
 
-export default function Home() {
+export default function Home({ user, isAdmin }) {
   const [auctions, setAuctions] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -34,7 +34,7 @@ export default function Home() {
 
   return (
     <>
-      <Hero />
+      <Hero user={user} isAdmin={isAdmin} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         <section className="mb-10">
           <div className="mb-4 flex items-center justify-between">

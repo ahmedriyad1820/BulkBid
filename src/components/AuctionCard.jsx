@@ -29,7 +29,7 @@ export default function AuctionCard({ a }) {
           )}
           <div className="absolute right-2 top-2 flex gap-2">
             <Badge>{a.category}</Badge>
-            <Badge className="bg-white dark:bg-gray-700 dark:text-gray-300">{a.location}</Badge>
+            <Badge>{a.location}</Badge>
           </div>
         </div>
         <div className="mt-3 space-y-2">
