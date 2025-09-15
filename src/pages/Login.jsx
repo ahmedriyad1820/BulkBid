@@ -27,7 +27,7 @@ export default function Login({ setUser, updateAdminState }) {
           localStorage.setItem('adminEmail', response.admin.email)
           // Update admin state in App component
           if (updateAdminState) {
-            updateAdminState(true, response.admin.email)
+            await updateAdminState(true, response.admin.email)
           }
           nav('/admin')
           return

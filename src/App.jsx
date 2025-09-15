@@ -16,6 +16,7 @@ import Register from './pages/Register.jsx'
 import Profile from './pages/Profile.jsx'
 import AdminProfile from './pages/AdminProfile.jsx'
 import StaticPage from './pages/StaticPage.jsx'
+import { getAdminProfile } from './services/api.js'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -117,9 +118,23 @@ export default function App() {
   }, [])
 
   // Update admin state when it changes
-  const updateAdminState = (adminFlag, email = '') => {
+  const updateAdminState = async (adminFlag, email = '') => {
     setIsAdmin(adminFlag)
     setAdminEmail(email)
+    if (adminFlag) {
+      try {
+        const data = await getAdminProfile()
+        if (data && data.admin) {
+          setAdminData(data.admin)
+          setUser(null)
+        }
+      } catch (e) {
+        // If token missing/invalid, clear admin state
+        setAdminData(null)
+      }
+    } else {
+      setAdminData(null)
+    }
   }
 
   // Clear admin state when regular user is set

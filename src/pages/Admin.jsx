@@ -12,6 +12,7 @@ export default function Admin({ updateAdminState }) {
   const [auctionStats, setAuctionStats] = useState(null)
   const [statsLoading, setStatsLoading] = useState(true)
   const [pendingSellers, setPendingSellers] = useState(0)
+  const [pendingUsers, setPendingUsers] = useState([])
   const nav = useNavigate()
 
   useEffect(() => {
@@ -57,11 +58,13 @@ export default function Admin({ updateAdminState }) {
   useEffect(() => {
     const fetchPending = async () => {
       try {
-        const res = await api.getAllUsers({ pendingSeller: true, limit: 1, page: 1 })
+        const res = await api.getAllUsers({ pendingSeller: true, limit: 3, page: 1 })
         if (res && res.pagination) {
           setPendingSellers(res.pagination.totalUsers || 0)
-        } else if (res && Array.isArray(res.users)) {
-          setPendingSellers(res.users.length)
+        }
+        if (res && Array.isArray(res.users)) {
+          setPendingUsers(res.users)
+          if (!res.pagination) setPendingSellers(res.users.length)
         }
       } catch (e) {
         console.error('Error fetching pending sellers', e)
@@ -151,13 +154,32 @@ export default function Admin({ updateAdminState }) {
             <Link to="/admin/users" className="rounded-xl px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">View all</Link>
           </div>
           {pendingSellers > 0 ? (
-            <div className="text-center py-8">
-              <div className="text-gray-400 dark:text-gray-500 mb-2">
-                <Users className="w-12 h-12 mx-auto" />
+            <div className="py-2">
+              <div className="space-y-3">
+                {pendingUsers.map((u) => (
+                  <div key={u._id} className="flex items-center justify-between rounded-xl border p-3 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+                        {u.profile?.avatar ? (
+                          <img src={u.profile.avatar} alt={u.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Users className="w-5 h-5 text-gray-500" />
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-medium dark:text-white">{u.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{u.email}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link to={`/admin/users`} className="rounded-lg px-3 py-1.5 text-sm border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">Details</Link>
+                    </div>
+                  </div>
+                ))}
+                {pendingSellers > pendingUsers.length && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 px-1">and {pendingSellers - pendingUsers.length} more…</div>
+                )}
               </div>
-              <p className="text-gray-900 dark:text-white text-xl font-semibold">{pendingSellers}</p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">pending seller verification{pendingSellers>1?'s':''}</p>
-              <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">Go to Users → filter Pending</p>
             </div>
           ) : (
             <div className="text-center py-8">

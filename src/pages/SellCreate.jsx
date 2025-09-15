@@ -136,7 +136,10 @@ export default function SellCreate() {
       } else {
         const errorData = await response.json()
         console.error('Auction creation error:', errorData)
-        alert(`Error: ${errorData.message || 'Failed to create auction'}`)
+        const firstValidationMsg = Array.isArray(errorData.errors) && errorData.errors.length > 0 
+          ? errorData.errors[0].msg 
+          : null
+        alert(`Error: ${firstValidationMsg || errorData.message || 'Failed to create auction'}`)
       }
     } catch (error) {
       console.error('Error creating auction:', error)
@@ -194,7 +197,12 @@ export default function SellCreate() {
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <Input label="Quantity" type="number" value={form.quantity} onChange={(v)=>setForm({...form,quantity:Number(v)})} required />
-              <Input label="Unit" value={form.unit} onChange={(v)=>setForm({...form,unit:v})} />
+              <Select 
+                label="Unit" 
+                options={['pieces','boxes','pallets','kg','lbs','units']} 
+                value={form.unit} 
+                onChange={(v)=>setForm({...form,unit:v})} 
+              />
               <Select label="Grade" options={['A','B','C','D','Mixed']} value={form.grade} onChange={(v)=>setForm({...form,grade:v})} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">

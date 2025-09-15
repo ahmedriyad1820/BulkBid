@@ -259,12 +259,16 @@ export default function AdminUsers() {
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <Badge 
-                            className={`${getRoleColor(user.role)} flex items-center gap-1 w-fit`}
-                          >
-                            {getRoleIcon(user.role)}
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                          </Badge>
+                          {user.pendingSeller ? (
+                            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300 flex items-center gap-1 w-fit">Pending</Badge>
+                          ) : (
+                            <Badge 
+                              className={`${getRoleColor(user.role)} flex items-center gap-1 w-fit`}
+                            >
+                              {getRoleIcon(user.role)}
+                              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            </Badge>
+                          )}
                         </td>
                         <td className="py-4 px-4 text-sm">
                           {user.pendingSeller ? <span className="text-amber-600">Pending</span> : <span className="text-gray-500">—</span>}
@@ -418,10 +422,17 @@ export default function AdminUsers() {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{selectedUser.name}</h3>
                       <p className="text-gray-600 dark:text-gray-400">{selectedUser.email}</p>
-                      <Badge className={`${getRoleColor(selectedUser.role)} flex items-center gap-1 w-fit mt-2`}>
-                        {getRoleIcon(selectedUser.role)}
-                        {selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}
-                      </Badge>
+                      {selectedUser.pendingSeller ? (
+                        <span className="mt-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+                          Pending
+                        </span>
+                      ) : (
+                        <Badge className={`${getRoleColor(selectedUser.role)} flex items-center gap-1 w-fit mt-2`}>
+                          {getRoleIcon(selectedUser.role)}
+                          {selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}
+                        </Badge>
+                      )}
+                      {/* Removed external view links per requirements */}
                     </div>
                   </div>
 
@@ -460,8 +471,8 @@ export default function AdminUsers() {
                     </div>
                   </div>
 
-                  {/* Seller-specific Information */}
-                  {selectedUser.role === 'seller' && (
+                  {/* Seller-specific / Pending-seller Information */}
+                  {(selectedUser.role === 'seller' || selectedUser.pendingSeller) && (
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white mb-3">Business Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -477,6 +488,32 @@ export default function AdminUsers() {
                           <span className="text-sm text-gray-600 dark:text-gray-400">NID Number:</span>
                           <p className="text-gray-900 dark:text-white">{selectedUser.profile?.nidNumber || 'Not provided'}</p>
                         </div>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">NID Document:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedUser.profile?.nidDocument ? 'Uploaded' : 'Not uploaded'}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Company Address:</span>
+                          <div className="text-gray-900 dark:text-white">
+                            {selectedUser.profile?.companyAddress ? (
+                              <div>
+                                <div>{selectedUser.profile.companyAddress.street}</div>
+                                <div>{selectedUser.profile.companyAddress.city}, {selectedUser.profile.companyAddress.state}</div>
+                                <div>{selectedUser.profile.companyAddress.zipCode}, {selectedUser.profile.companyAddress.country}</div>
+                              </div>
+                            ) : (
+                              'Not provided'
+                            )}
+                          </div>
+                        </div>
+                        {selectedUser.profile?.nidDocument && (
+                          <div className="md:col-span-2">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">NID Image:</span>
+                            <div className="mt-2 rounded-lg overflow-hidden border dark:border-gray-700 w-full max-w-md">
+                              <img src={selectedUser.profile.nidDocument} alt="NID Document" className="w-full h-auto object-contain bg-gray-50 dark:bg-gray-900" />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

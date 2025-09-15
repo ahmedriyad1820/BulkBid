@@ -2,7 +2,13 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    const mongoUri = process.env.MONGODB_URI;
+    const dbNameFromEnv = process.env.MONGODB_DB;
+
+    const conn = await mongoose.connect(mongoUri, {
+      // Allow overriding the database name when the URI doesn't include it
+      dbName: dbNameFromEnv || undefined
+    });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     console.log(`Database: ${conn.connection.name}`);

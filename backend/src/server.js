@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/database.js';
@@ -36,7 +37,12 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'BulkBid API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    database: {
+      name: mongoose.connection?.name || null,
+      host: mongoose.connection?.host || null,
+      readyState: mongoose.connection?.readyState ?? null
+    }
   });
 });
 

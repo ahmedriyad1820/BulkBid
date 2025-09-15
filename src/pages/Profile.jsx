@@ -274,12 +274,18 @@ export default function Profile({ setUser: updateUser }) {
                 <h2 className="text-2xl font-semibold dark:text-white mb-2">{user.name}</h2>
                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">{user.email}</p>
                 <div className="mt-4 flex items-center justify-center gap-2">
-                  {user.role === 'seller' ? (
+                  {user.pendingSeller ? (
+                    <Building2 className="w-5 h-5 text-amber-500" />
+                  ) : user.role === 'seller' ? (
                     <Building2 className="w-5 h-5 text-blue-500" />
                   ) : (
                     <User className="w-5 h-5 text-green-500" />
                   )}
-                  <span className="text-sm font-medium capitalize">{user.role}</span>
+                  {user.pendingSeller ? (
+                    <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-medium dark:bg-amber-900 dark:text-amber-300">Pending approval</span>
+                  ) : (
+                    <span className="text-sm font-medium capitalize">{user.role}</span>
+                  )}
                 </div>
               </div>
               
