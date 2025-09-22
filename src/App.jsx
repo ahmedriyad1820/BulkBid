@@ -15,6 +15,7 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Profile from './pages/Profile.jsx'
 import AdminProfile from './pages/AdminProfile.jsx'
+import SellerProfile from './pages/SellerProfile.jsx'
 import StaticPage from './pages/StaticPage.jsx'
 import { getAdminProfile } from './services/api.js'
 
@@ -200,6 +201,7 @@ export default function App() {
             <Route path="/register" element={<Register setUser={setUser} />} />
             <Route path="/profile" element={<Profile setUser={setUser} />} />
             <Route path="/admin-profile" element={<AdminProfile setUser={setUser} setAdminData={setAdminData} />} />
+            <Route path="/seller/:id" element={<SellerProfile />} />
             <Route path="/terms" element={<StaticPage title="Terms & Conditions">Coming soon.</StaticPage>} />
             <Route path="/privacy" element={<StaticPage title="Privacy">Coming soon.</StaticPage>} />
             <Route path="/help" element={<StaticPage title="Help Center">Email support@bulkbid.example</StaticPage>} />

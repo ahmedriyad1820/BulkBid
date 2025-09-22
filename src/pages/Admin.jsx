@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import Card from '../components/ui/Card.jsx'
 import PieChart from '../components/PieChart.jsx'
+import Stat from '../components/ui/Stat.jsx'
+import { Gavel, ShieldCheck, BarChart3, Users, Eye } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Users, Eye, BarChart3 } from 'lucide-react'
 import { getAuctionStats } from '../services/api.js'
 import api from '../services/api.js'
 
@@ -11,6 +12,7 @@ export default function Admin({ updateAdminState }) {
   const [loading, setLoading] = useState(true)
   const [auctionStats, setAuctionStats] = useState(null)
   const [statsLoading, setStatsLoading] = useState(true)
+  const [verifiedSellers, setVerifiedSellers] = useState(0)
   const [pendingSellers, setPendingSellers] = useState(0)
   const [pendingUsers, setPendingUsers] = useState([])
   const nav = useNavigate()
@@ -66,6 +68,13 @@ export default function Admin({ updateAdminState }) {
           setPendingUsers(res.users)
           if (!res.pagination) setPendingSellers(res.users.length)
         }
+        // Also compute verified sellers (role === 'seller' and not pending)
+        const sellersRes = await api.getAllUsers({ role: 'seller', limit: 1, page: 1 })
+        if (sellersRes && sellersRes.pagination) {
+          setVerifiedSellers(sellersRes.pagination.totalUsers || 0)
+        } else if (Array.isArray(sellersRes?.users)) {
+          setVerifiedSellers(sellersRes.users.length)
+        }
       } catch (e) {
         console.error('Error fetching pending sellers', e)
       }
@@ -119,6 +128,13 @@ export default function Admin({ updateAdminState }) {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Admin Panel</h1>
         <p className="text-gray-600 dark:text-gray-300">Moderate auctions, verify sellers, and review disputes.</p>
+      </div>
+
+      {/* Top admin stats */}
+      <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <Card><Stat label="Active Auctions" value={(auctionStats?.running ?? 0).toString()} icon={Gavel} /></Card>
+        <Card><Stat label="Verified Sellers" value={verifiedSellers.toString()} icon={ShieldCheck} /></Card>
+        <Card><Stat label="Total Bids" value={(auctionStats?.completed ?? 0).toString()} icon={BarChart3} /></Card>
       </div>
 
       {/* Auction Statistics Pie Chart */}

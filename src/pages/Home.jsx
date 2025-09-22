@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Card from '../components/ui/Card.jsx'
-import Stat from '../components/ui/Stat.jsx'
 import AuctionGrid from '../components/AuctionGrid.jsx'
-import { Gavel, ShieldCheck, BarChart3, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import Hero from './parts/Hero.jsx'
 import { Link } from 'react-router-dom'
 import { getAuctions } from '../services/api.js'
@@ -65,11 +64,7 @@ export default function Home({ user, isAdmin }) {
             <AuctionGrid auctions={auctions} />
           )}
         </section>
-        <section className="grid gap-4 md:grid-cols-3">
-          <Card><Stat label="Active Auctions" value={auctions.length.toString()} icon={Gavel} /></Card>
-          <Card><Stat label="Verified Sellers" value="1" icon={ShieldCheck} /></Card>
-          <Card><Stat label="Total Bids" value="0" icon={BarChart3} /></Card>
-        </section>
+        {/* Admin stats removed from Home. They're now shown in Admin page. */}
       </div>
     </>
   )

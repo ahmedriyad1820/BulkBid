@@ -118,3 +118,6 @@ The server runs on `http://localhost:5000` by default. The API includes:
 
 Visit `http://localhost:5000/api/health` to verify the server is running.
 
+## for run the project 
+npm run dev:all
+
