@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import auctionRoutes from './routes/auctions.js';
 import userRoutes from './routes/users.js';
 import adminRoutes from './routes/admin.js';
+import orderRoutes from './routes/orders.js';
 import { createDefaultAdmin } from './controllers/adminController.js';
 
 // Load environment variables
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auctions', auctionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

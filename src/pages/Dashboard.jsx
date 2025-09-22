@@ -4,15 +4,21 @@ import Button from '../components/ui/Button.jsx'
 import Countdown from '../components/Countdown.jsx'
 import { Filter, Plus, DollarSign } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { getProfile, getUserAuctions } from '../services/api.js'
+import { getProfile, getUserAuctions, getUserBids, getMyOrders } from '../services/api.js'
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [loadingUser, setLoadingUser] = useState(true)
   const [sellerAuctions, setSellerAuctions] = useState([])
   const [loadingAuctions, setLoadingAuctions] = useState(false)
+  const [buyerBids, setBuyerBids] = useState([])
+  const [loadingBids, setLoadingBids] = useState(false)
   const [error, setError] = useState('')
   const [selectedBidder, setSelectedBidder] = useState(null)
+  const [creatingOrderFor, setCreatingOrderFor] = useState(null)
+  const [orders, setOrders] = useState([])
+  const [loadingOrders, setLoadingOrders] = useState(false)
+  const [buyerTab, setBuyerTab] = useState('bids') // 'bids' | 'orders'
 
   // Load current user
   useEffect(() => {
@@ -29,11 +35,22 @@ export default function Dashboard() {
           // API returns an array
           setSellerAuctions(Array.isArray(auctions) ? auctions : [])
         }
+        // If buyer, load their bids
+        if (u?.role === 'buyer') {
+          setLoadingBids(true)
+          const bids = await getUserBids()
+          setBuyerBids(Array.isArray(bids) ? bids : [])
+          setLoadingOrders(true)
+          const o = await getMyOrders()
+          setOrders(Array.isArray(o) ? o : [])
+        }
       } catch (e) {
         setError(e?.message || 'Failed to load dashboard')
       } finally {
         setLoadingUser(false)
         setLoadingAuctions(false)
+        setLoadingBids(false)
+        setLoadingOrders(false)
       }
     }
     load()
@@ -51,13 +68,20 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">{user?.role === 'seller' ? 'Your Auctions' : 'Your Bids'}</h3>
+            <h3 className="text-lg font-semibold">{user?.role === 'seller' ? 'Your Auctions' : (buyerTab === 'orders' ? 'Orders' : 'Your Bids')}</h3>
+            {user?.role === 'buyer' ? (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setBuyerTab('bids')} className={`rounded-full px-3 py-1 text-sm ${buyerTab==='bids' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>Bids</button>
+                <button onClick={() => setBuyerTab('orders')} className={`rounded-full px-3 py-1 text-sm ${buyerTab==='orders' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>Orders</button>
+              </div>
+            ) : (
             <Button variant="ghost" icon={Filter}>Filter</Button>
+            )}
           </div>
           {error && (
             <div className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">{error}</div>
           )}
-          {loadingUser || (user?.role === 'seller' && loadingAuctions) ? (
+          {loadingUser || (user?.role === 'seller' && loadingAuctions) || (user?.role === 'buyer' && (buyerTab==='bids' ? loadingBids : loadingOrders)) ? (
             <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">Loading...</div>
           ) : user?.role === 'seller' ? (
             sellerAuctions.length === 0 ? (
@@ -72,7 +96,7 @@ export default function Dashboard() {
                     <th className="py-2">Auction</th>
                     <th>Current</th>
                     <th>Ends</th>
-                    <th>Status</th>
+                    <th className="pl-8">Status</th>
                     <th className="w-24">Actions</th>
                   </tr>
                 </thead>
@@ -116,8 +140,110 @@ export default function Dashboard() {
                 </tbody>
               </table>
             )
+          ) : buyerTab === 'bids' ? (
+            buyerBids.length === 0 ? (
+              <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">No bids to show yet.</div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500">
+                    <th className="py-2">Auction</th>
+                    <th className="text-right">Your Bid</th>
+                    <th className="text-right">Leading</th>
+                    <th className="text-right pr-8">Ends</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buyerBids.map(a => {
+                    const bids = Array.isArray(a.bids) ? a.bids : []
+                    const myTop = bids.find(b => (typeof b.bidder === 'object' ? b.bidder?._id : b.bidder) === user._id) || null
+                    // Determine top bid by amount, then latest by timestamp if tie
+                    let highest = null
+                    if (bids.length > 0) {
+                      const maxAmount = Math.max(...bids.map(b => b?.amount || 0))
+                      const topAtMax = bids.filter(b => (b?.amount || 0) === maxAmount)
+                      highest = topAtMax.reduce((latest, b) => {
+                        const bt = new Date(b?.timestamp || b?.time || b?.createdAt || 0).getTime()
+                        const lt = new Date(latest?.timestamp || latest?.time || latest?.createdAt || 0).getTime()
+                        return bt >= lt ? b : latest
+                      }, topAtMax[0])
+                    }
+                    const highestBidderId = highest ? (typeof highest.bidder === 'object' ? highest.bidder?._id : highest.bidder) : null
+                    const isLeading = !!highestBidderId && String(highestBidderId) === String(user._id)
+                    const isEnded = (a.status === 'ended') || (a.endTime && new Date(a.endTime) <= new Date())
+                    const winnerIdRaw = a && a.winner ? (typeof a.winner === 'object' ? a.winner._id : a.winner) : null
+                    const inferredWinnerId = !winnerIdRaw && isEnded ? highestBidderId : null
+                    const effectiveWinnerId = winnerIdRaw || inferredWinnerId
+                    const isWinner = !!effectiveWinnerId && String(effectiveWinnerId) === String(user._id)
+                    const canOrder = isEnded && isWinner
+                    return (
+                      <tr key={a._id} className="border-t align-top">
+                        <td className="py-2">
+                          <Link to={`/auction/${a._id}`} className="font-medium hover:underline">{a.title}</Link>
+                          <div className="text-xs text-gray-500">{a.location} • {a.category}</div>
+                        </td>
+                        <td className="text-right align-middle">${(myTop?.amount || 0).toLocaleString()}</td>
+                        <td className={`text-right align-middle ${isLeading ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
+                          {highest ? `$${highest.amount.toLocaleString()}` : '—'}
+                        </td>
+                        <td className="text-right align-middle pr-8">
+                          {isEnded ? (
+                            <span className={`rounded-full px-2 py-0.5 text-xs whitespace-nowrap ${isWinner ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>
+                              {isWinner ? 'Won' : 'Lost'}
+                            </span>
+                          ) : (
+                            <Countdown endsAt={a.endTime} />
+                          )}
+                        </td>
+                        <td className="align-middle">
+                          <div className="flex items-center gap-2 h-10 justify-between w-full">
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300 whitespace-nowrap">{a.status}</span>
+                            <Button 
+                              size="sm" 
+                              onClick={() => setCreatingOrderFor(a)}
+                              disabled={!canOrder}
+                              title={canOrder ? 'Create order' : 'You can place the order after you win and the auction ends'}
+                              className="whitespace-nowrap"
+                            >
+                              Place Order
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )
           ) : (
-            <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">No bids to show yet.</div>
+            orders.length === 0 ? (
+              <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">No orders yet.</div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500">
+                    <th className="py-2">Order</th>
+                    <th className="text-right">Amount</th>
+                    <th className="text-right">Status</th>
+                    <th className="text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(o => (
+                    <tr key={o._id} className="border-t align-top">
+                      <td className="py-2">
+                        <div className="font-medium">{o.auction?.title || 'Auction'}</div>
+                        <div className="text-xs text-gray-500">{o.auction?.location}</div>
+                      </td>
+                      <td className="text-right">${(o.amount || 0).toLocaleString()}</td>
+                      <td className="text-right"><span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300 whitespace-nowrap">{o.status}</span></td>
+                      <td className="text-right">{new Date(o.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
           )}
         </Card>
         <div className="space-y-4">
@@ -190,6 +316,79 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Create Order modal */}
+      {creatingOrderFor && (
+        <CreateOrderModal auction={creatingOrderFor} user={user} onClose={() => setCreatingOrderFor(null)} />
+      )}
+    </div>
+  )
+}
+
+function CreateOrderModal({ auction, user, onClose }) {
+  const [saving, setSaving] = React.useState(false)
+  const [street, setStreet] = React.useState('')
+  const [city, setCity] = React.useState('')
+  const [state, setState] = React.useState('')
+  const [zipCode, setZipCode] = React.useState('')
+  const [country, setCountry] = React.useState('')
+  const [contactNumber, setContactNumber] = React.useState('')
+  const [error, setError] = React.useState('')
+  const [success, setSuccess] = React.useState('')
+
+  // Autofill from user profile on open
+  React.useEffect(() => {
+    const addr = user?.profile?.address
+    if (addr) {
+      setStreet(addr.street || '')
+      setCity(addr.city || '')
+      setState(addr.state || '')
+      setZipCode(addr.zipCode || '')
+      setCountry(addr.country || '')
+    }
+    setContactNumber(user?.profile?.phone || '')
+  }, [user])
+
+  const handleSubmit = async () => {
+    setSaving(true)
+    setError('')
+    setSuccess('')
+    try {
+      const shippingAddress = { street, city, state, zipCode, country }
+      const { createOrder } = await import('../services/api.js')
+      await createOrder(auction._id, shippingAddress, contactNumber)
+      setSuccess('Order created successfully')
+      setTimeout(onClose, 800)
+    } catch (e) {
+      setError(e?.message || 'Failed to create order')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900 dark:text-gray-100" onClick={(e)=>e.stopPropagation()}>
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-lg font-semibold">Create Order</div>
+          <button onClick={onClose} className="rounded-lg px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">✕</button>
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">{auction.title} • Total ${auction.currentBid?.toLocaleString() || 0}</div>
+        {error && <div className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">{error}</div>}
+        {success && <div className="mb-3 rounded-lg bg-green-50 p-3 text-sm text-green-600 dark:bg-green-900/20 dark:text-green-400">{success}</div>}
+        <div className="grid gap-3 md:grid-cols-2">
+          <input className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 md:col-span-2" placeholder="Contact Number" value={contactNumber} onChange={e=>setContactNumber(e.target.value)} />
+          <input className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" placeholder="Street" value={street} onChange={e=>setStreet(e.target.value)} />
+          <input className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" placeholder="City" value={city} onChange={e=>setCity(e.target.value)} />
+          <input className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" placeholder="State" value={state} onChange={e=>setState(e.target.value)} />
+          <input className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" placeholder="ZIP" value={zipCode} onChange={e=>setZipCode(e.target.value)} />
+          <input className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 md:col-span-2" placeholder="Country" value={country} onChange={e=>setCountry(e.target.value)} />
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onClose} className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Cancel</button>
+          <button onClick={handleSubmit} disabled={saving} className="rounded-xl bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-60 dark:bg-white dark:text-black dark:hover:bg-gray-200">{saving ? 'Creating…' : 'Create Order'}</button>
+        </div>
+      </div>
     </div>
   )
 }

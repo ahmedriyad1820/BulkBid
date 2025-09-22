@@ -7,7 +7,8 @@ import {
   updateAuction, 
   deleteAuction, 
   placeBid,
-  getUserAuctions 
+  getUserAuctions,
+  getUserBids 
 } from '../controllers/auctionController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
@@ -80,6 +81,7 @@ router.put('/:id', authenticate, auctionValidation, updateAuction);
 router.delete('/:id', authenticate, deleteAuction);
 router.post('/:id/bid', authenticate, bidValidation, placeBid);
 router.get('/user/my-auctions', authenticate, getUserAuctions);
+router.get('/user/my-bids', authenticate, getUserBids);
 
 export default router;
 

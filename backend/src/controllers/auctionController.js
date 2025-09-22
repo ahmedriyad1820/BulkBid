@@ -249,3 +249,40 @@ export const getUserAuctions = async (req, res) => {
   }
 };
 
+// Get auctions that the current user has bid on (buyer dashboard)
+export const getUserBids = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { status } = req.query;
+    const filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    // Find auctions where bids contain this user
+    const auctions = await Auction.find({
+      ...filter,
+      'bids.bidder': userId
+    })
+      .populate('seller', 'name email profile')
+      .populate('bids.bidder', 'name email profile')
+      .sort({ updatedAt: -1 });
+
+    // For frontend convenience, sort bids by amount desc
+    const normalized = auctions.map(a => {
+      const auction = a.toObject();
+      if (Array.isArray(auction.bids)) {
+        auction.bids = auction.bids
+          .slice()
+          .sort((b1, b2) => (b2.amount || 0) - (b1.amount || 0));
+      }
+      return auction;
+    });
+
+    res.json(normalized);
+  } catch (error) {
+    console.error('Get user bids error:', error);
+    res.status(500).json({ message: 'Server error while fetching user bids' });
+  }
+};
+

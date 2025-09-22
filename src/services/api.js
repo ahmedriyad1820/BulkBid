@@ -254,8 +254,25 @@ class ApiService {
     });
   }
 
+  // Orders
+  async createOrder(auctionId, shippingAddress, contactNumber) {
+    return this.request('/orders', {
+      method: 'POST',
+      body: JSON.stringify({ auctionId, shippingAddress, contactNumber })
+    });
+  }
+
+  async getMyOrders() {
+    return this.request('/orders/my');
+  }
+
   async getUserAuctions(status) {
     const endpoint = status ? `/auctions/user/my-auctions?status=${status}` : '/auctions/user/my-auctions';
+    return this.request(endpoint);
+  }
+
+  async getUserBids(status) {
+    const endpoint = status ? `/auctions/user/my-bids?status=${status}` : '/auctions/user/my-bids';
     return this.request(endpoint);
   }
 
@@ -275,6 +292,9 @@ export const updateAuction = (id, auctionData) => apiService.updateAuction(id, a
 export const deleteAuction = (id) => apiService.deleteAuction(id);
 export const placeBid = (auctionId, amount) => apiService.placeBid(auctionId, amount);
 export const getUserAuctions = (status) => apiService.getUserAuctions(status);
+export const getUserBids = (status) => apiService.getUserBids(status);
+export const createOrder = (auctionId, shippingAddress, contactNumber) => apiService.createOrder(auctionId, shippingAddress, contactNumber);
+export const getMyOrders = () => apiService.getMyOrders();
 export const register = (userData) => apiService.register(userData);
 export const login = (credentials) => apiService.login(credentials);
 export const logout = () => apiService.logout();
