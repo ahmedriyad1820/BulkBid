@@ -266,6 +266,10 @@ class ApiService {
     return this.request('/orders/my');
   }
 
+  async getSellerOrders() {
+    return this.request('/orders/seller');
+  }
+
   async getUserAuctions(status) {
     const endpoint = status ? `/auctions/user/my-auctions?status=${status}` : '/auctions/user/my-auctions';
     return this.request(endpoint);
@@ -295,6 +299,7 @@ export const getUserAuctions = (status) => apiService.getUserAuctions(status);
 export const getUserBids = (status) => apiService.getUserBids(status);
 export const createOrder = (auctionId, shippingAddress, contactNumber) => apiService.createOrder(auctionId, shippingAddress, contactNumber);
 export const getMyOrders = () => apiService.getMyOrders();
+export const getSellerOrders = () => apiService.getSellerOrders();
 export const register = (userData) => apiService.register(userData);
 export const login = (credentials) => apiService.login(credentials);
 export const logout = () => apiService.logout();

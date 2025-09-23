@@ -4,13 +4,17 @@ import Button from '../components/ui/Button.jsx'
 import Countdown from '../components/Countdown.jsx'
 import { Filter, Plus, DollarSign } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { getProfile, getUserAuctions, getUserBids, getMyOrders } from '../services/api.js'
+import { getProfile, getUserAuctions, getUserBids, getMyOrders, getSellerOrders } from '../services/api.js'
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [loadingUser, setLoadingUser] = useState(true)
   const [sellerAuctions, setSellerAuctions] = useState([])
   const [loadingAuctions, setLoadingAuctions] = useState(false)
+  const [sellerOrders, setSellerOrders] = useState([])
+  const [loadingSellerOrders, setLoadingSellerOrders] = useState(false)
+  const [sellerTab, setSellerTab] = useState('auctions') // 'auctions' | 'orders'
+  const [sellerStatusFilter, setSellerStatusFilter] = useState('All')
   const [buyerBids, setBuyerBids] = useState([])
   const [loadingBids, setLoadingBids] = useState(false)
   const [error, setError] = useState('')
@@ -34,6 +38,10 @@ export default function Dashboard() {
           const auctions = await getUserAuctions()
           // API returns an array
           setSellerAuctions(Array.isArray(auctions) ? auctions : [])
+          // Also load seller orders
+          setLoadingSellerOrders(true)
+          const so = await getSellerOrders()
+          setSellerOrders(Array.isArray(so) ? so : [])
         }
         // If buyer, load their bids
         if (u?.role === 'buyer') {
@@ -50,11 +58,30 @@ export default function Dashboard() {
         setLoadingUser(false)
         setLoadingAuctions(false)
         setLoadingBids(false)
+        setLoadingSellerOrders(false)
         setLoadingOrders(false)
       }
     }
     load()
   }, [])
+
+  // When buyer switches to Orders tab, fetch latest orders
+  useEffect(() => {
+    const loadOrdersIfNeeded = async () => {
+      if (user?.role === 'buyer' && buyerTab === 'orders') {
+        try {
+          setLoadingOrders(true)
+          const o = await getMyOrders()
+          setOrders(Array.isArray(o) ? o : [])
+        } catch (e) {
+          setError(e?.message || 'Failed to load orders')
+        } finally {
+          setLoadingOrders(false)
+        }
+      }
+    }
+    loadOrdersIfNeeded()
+  }, [buyerTab, user])
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -68,29 +95,34 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">{user?.role === 'seller' ? 'Your Auctions' : (buyerTab === 'orders' ? 'Orders' : 'Your Bids')}</h3>
+            <h3 className="text-lg font-semibold">{user?.role === 'seller' ? (sellerTab === 'orders' ? 'Orders' : 'Your Auctions') : (buyerTab === 'orders' ? 'Orders' : 'Your Bids')}</h3>
             {user?.role === 'buyer' ? (
               <div className="flex items-center gap-2">
                 <button onClick={() => setBuyerTab('bids')} className={`rounded-full px-3 py-1 text-sm ${buyerTab==='bids' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>Bids</button>
                 <button onClick={() => setBuyerTab('orders')} className={`rounded-full px-3 py-1 text-sm ${buyerTab==='orders' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>Orders</button>
               </div>
             ) : (
-            <Button variant="ghost" icon={Filter}>Filter</Button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setSellerTab('auctions')} className={`rounded-full px-3 py-1 text-sm ${sellerTab==='auctions' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>Auctions</button>
+                <button onClick={() => setSellerTab('orders')} className={`rounded-full px-3 py-1 text-sm ${sellerTab==='orders' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>Orders</button>
+              </div>
             )}
           </div>
           {error && (
             <div className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">{error}</div>
           )}
-          {loadingUser || (user?.role === 'seller' && loadingAuctions) || (user?.role === 'buyer' && (buyerTab==='bids' ? loadingBids : loadingOrders)) ? (
+          {loadingUser || (user?.role === 'seller' && (loadingAuctions || loadingSellerOrders)) || (user?.role === 'buyer' && (buyerTab==='bids' ? loadingBids : loadingOrders)) ? (
             <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">Loading...</div>
           ) : user?.role === 'seller' ? (
-            sellerAuctions.length === 0 ? (
-              <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">
-                You have not created any auctions yet.
-                <div className="mt-3"><Link to="/sell"><Button>Create your first auction</Button></Link></div>
-              </div>
-            ) : (
-              <table className="w-full text-sm">
+            sellerTab === 'auctions' ? (
+              sellerAuctions.length === 0 ? (
+                <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">
+                  You have not created any auctions yet.
+                  <div className="mt-3"><Link to="/sell"><Button>Create your first auction</Button></Link></div>
+                </div>
+              ) : (
+                <>
+                <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-gray-500">
                     <th className="py-2">Auction</th>
@@ -138,7 +170,48 @@ export default function Dashboard() {
                     )
                   })}
                 </tbody>
-              </table>
+                </table>
+                </>
+              )
+            ) : (
+              sellerOrders.length === 0 ? (
+                <div className="py-10 text-center text-sm text-gray-600 dark:text-gray-400">No orders yet.</div>
+              ) : (
+                <>
+                <div className="mb-3 flex items-center gap-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-300">Status</label>
+                  <select value={sellerStatusFilter} onChange={e=>setSellerStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
+                    {['All','pending','paid','shipped','completed','cancelled'].map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-500">
+                      <th className="py-2">Buyer</th>
+                      <th>Auction</th>
+                      <th className="text-right">Amount</th>
+                      <th className="text-right">Status</th>
+                      <th className="text-right">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sellerOrders
+                      .filter(o => sellerStatusFilter==='All' ? true : (o.status === sellerStatusFilter))
+                      .map(o => (
+                      <tr key={o._id} className="border-t align-top">
+                        <td className="py-2">{o.buyer?.name || 'Buyer'}</td>
+                        <td>{o.auction?.title || 'Auction'}</td>
+                        <td className="text-right">${(o.amount || 0).toLocaleString()}</td>
+                        <td className="text-right"><span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300 whitespace-nowrap">{o.status}</span></td>
+                        <td className="text-right">{new Date(o.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </>
+              )
             )
           ) : buyerTab === 'bids' ? (
             buyerBids.length === 0 ? (
@@ -177,6 +250,11 @@ export default function Dashboard() {
                     const effectiveWinnerId = winnerIdRaw || inferredWinnerId
                     const isWinner = !!effectiveWinnerId && String(effectiveWinnerId) === String(user._id)
                     const canOrder = isEnded && isWinner
+                    const hasOrder = Array.isArray(orders) && orders.some(o => {
+                      const aRef = o.auction
+                      const orderedAuctionId = typeof aRef === 'string' ? aRef : aRef?._id
+                      return orderedAuctionId === a._id
+                    })
                     return (
                       <tr key={a._id} className="border-t align-top">
                         <td className="py-2">
@@ -199,15 +277,19 @@ export default function Dashboard() {
                         <td className="align-middle">
                           <div className="flex items-center gap-2 h-10 justify-between w-full">
                             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300 whitespace-nowrap">{a.status}</span>
-                            <Button 
-                              size="sm" 
-                              onClick={() => setCreatingOrderFor(a)}
-                              disabled={!canOrder}
-                              title={canOrder ? 'Create order' : 'You can place the order after you win and the auction ends'}
-                              className="whitespace-nowrap"
-                            >
-                              Place Order
-                            </Button>
+                            {hasOrder ? (
+                              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/20 dark:text-green-400 whitespace-nowrap">Ordered</span>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                onClick={() => setCreatingOrderFor(a)}
+                                disabled={!canOrder}
+                                title={canOrder ? 'Create order' : 'You can place the order after you win and the auction ends'}
+                                className="whitespace-nowrap"
+                              >
+                                Place Order
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -319,13 +401,26 @@ export default function Dashboard() {
 
       {/* Create Order modal */}
       {creatingOrderFor && (
-        <CreateOrderModal auction={creatingOrderFor} user={user} onClose={() => setCreatingOrderFor(null)} />
+        <CreateOrderModal 
+          auction={creatingOrderFor} 
+          user={user} 
+          onClose={() => setCreatingOrderFor(null)} 
+          onCreated={async () => {
+            try {
+              setLoadingOrders(true)
+              const o = await getMyOrders()
+              setOrders(Array.isArray(o) ? o : [])
+            } finally {
+              setLoadingOrders(false)
+            }
+          }}
+        />
       )}
     </div>
   )
 }
 
-function CreateOrderModal({ auction, user, onClose }) {
+function CreateOrderModal({ auction, user, onClose, onCreated }) {
   const [saving, setSaving] = React.useState(false)
   const [street, setStreet] = React.useState('')
   const [city, setCity] = React.useState('')
@@ -358,6 +453,7 @@ function CreateOrderModal({ auction, user, onClose }) {
       const { createOrder } = await import('../services/api.js')
       await createOrder(auction._id, shippingAddress, contactNumber)
       setSuccess('Order created successfully')
+      try { onCreated && (await onCreated()) } catch (_) {}
       setTimeout(onClose, 800)
     } catch (e) {
       setError(e?.message || 'Failed to create order')

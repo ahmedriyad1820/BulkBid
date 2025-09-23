@@ -5,7 +5,7 @@ import Badge from '../components/ui/Badge.jsx'
 import Button from '../components/ui/Button.jsx'
 import Countdown from '../components/Countdown.jsx'
 import { Gavel, Clock, Store, Tag, Layers, Bell, Loader2, AlertCircle, Mail, Phone, X } from 'lucide-react'
-import { getAuction, placeBid as placeBidAPI } from '../services/api.js'
+import { getAuction, placeBid as placeBidAPI, getMyOrders } from '../services/api.js'
 
 export default function AuctionDetail({ user }) {
   const { id } = useParams()
@@ -17,6 +17,7 @@ export default function AuctionDetail({ user }) {
   const [amount, setAmount] = useState(0)
   const [minAllowed, setMinAllowed] = useState(0)
   const [creatingOrder, setCreatingOrder] = useState(false)
+  const [hasOrdered, setHasOrdered] = useState(false)
   const [showSellerModal, setShowSellerModal] = useState(false)
 
   // Fetch auction data
@@ -60,6 +61,28 @@ export default function AuctionDetail({ user }) {
       setAmount(min)
     }
   }, [auction])
+
+  // Check if buyer already created an order for this auction
+  useEffect(() => {
+    const checkOrder = async () => {
+      try {
+        if (user?.role === 'buyer' && auction?._id) {
+          const orders = await getMyOrders()
+          const found = Array.isArray(orders) && orders.some(o => {
+            const a = o.auction
+            const aid = typeof a === 'string' ? a : a?._id
+            return aid === auction._id
+          })
+          setHasOrdered(!!found)
+        } else {
+          setHasOrdered(false)
+        }
+      } catch (_) {
+        // non-blocking
+      }
+    }
+    checkOrder()
+  }, [user, auction?._id])
 
   const handlePlaceBid = async () => {
     if (!user) {
@@ -240,7 +263,11 @@ export default function AuctionDetail({ user }) {
                 isWinner ? (
                   <div>
                     <div className="mb-3 text-sm text-gray-700 dark:text-gray-300 font-medium">You won this auction</div>
-                    <Button onClick={() => setCreatingOrder(true)}>Place Order</Button>
+                    {hasOrdered ? (
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Order already placed</div>
+                    ) : (
+                      <Button onClick={() => setCreatingOrder(true)}>Place Order</Button>
+                    )}
                   </div>
                 ) : (
                   <div className="text-sm text-gray-600 dark:text-gray-400">You didn't win this auction</div>
@@ -411,7 +438,12 @@ export default function AuctionDetail({ user }) {
             </div>
           )}
           {creatingOrder && (
-            <CreateOrderModal auction={auction} user={user} onClose={() => setCreatingOrder(false)} />
+            <CreateOrderModal 
+              auction={auction} 
+              user={user} 
+              onClose={() => setCreatingOrder(false)} 
+              onCreated={() => setHasOrdered(true)}
+            />
           )}
         </div>
       </div>
@@ -419,7 +451,7 @@ export default function AuctionDetail({ user }) {
   )
 }
 
-function CreateOrderModal({ auction, user, onClose }) {
+function CreateOrderModal({ auction, user, onClose, onCreated }) {
   const [saving, setSaving] = React.useState(false)
   const [street, setStreet] = React.useState('')
   const [city, setCity] = React.useState('')
@@ -452,6 +484,7 @@ function CreateOrderModal({ auction, user, onClose }) {
       const { createOrder } = await import('../services/api.js')
       await createOrder(auction._id, shippingAddress, contactNumber)
       setSuccess('Order created successfully')
+      try { onCreated && onCreated() } catch (_) {}
       setTimeout(onClose, 800)
     } catch (e) {
       setError(e?.message || 'Failed to create order')

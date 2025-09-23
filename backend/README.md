@@ -120,4 +120,7 @@ Visit `http://localhost:5000/api/health` to verify the server is running.
 
 ## for run the project 
 npm run dev:all
-
+If you want logs streamed here, I can foreground either process, or run them separately:
+Start backend only: npm run dev:backend
+Start frontend only: npm run dev:frontend
+Start MongoDB service: npm run start:db
